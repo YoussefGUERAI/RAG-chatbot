@@ -1,0 +1,27 @@
+services:
+
+  mongo:
+    image: mongo:7.0
+    container_name: rag-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: rag_chatbot
+
+  mongo-express:
+    image: mongo-express:latest
+    container_name: rag-mongo-ui
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongo
+      ME_CONFIG_BASICAUTH: false
+    depends_on:
+      - mongo
+
+volumes:
+  mongo_data:
