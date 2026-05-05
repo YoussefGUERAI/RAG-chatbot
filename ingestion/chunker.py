@@ -15,7 +15,7 @@ from shared.schemas import ChunkInput, ChunkMetadata
 from shared.config import get_settings
 
 
-def chunk_pages(pages: list[tuple[int, str]],source_file: str) -> list[ChunkInput]:
+def chunk_pages(pages: list[tuple[int, str]], source_file: str) -> list[ChunkInput]:
     settings = get_settings()
     chunks: list[ChunkInput] = []
     chunk_index = 0
@@ -74,11 +74,13 @@ def _group_sentences_into_chunks(
             overlap_chars = []
             overlap_len = 0
             for prev_sentence in reversed(current_chars):
-                if overlap_len + len(prev_sentence) > overlap:
+                sep = 1 if overlap_chars else 0
+                if overlap_len + sep + len(prev_sentence) > overlap:
                     break
-                overlap_chars.insert(0, prev_sentence)
-                overlap_len += len(prev_sentence)
+                overlap_chars.append(prev_sentence)
+                overlap_len += sep + len(prev_sentence)
 
+            overlap_chars.reverse()
             current_chars = overlap_chars
             current_len = overlap_len
 

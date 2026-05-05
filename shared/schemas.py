@@ -8,8 +8,8 @@ MongoDB collection: `chunks`
 """
 
 from datetime import datetime
-from typing import Optional
-from pydantic import BaseModel, Field
+from typing import Annotated, Any, Optional
+from pydantic import BaseModel, BeforeValidator, Field, PlainSerializer, WithJsonSchema
 from bson import ObjectId
 
 
@@ -17,21 +17,20 @@ from bson import ObjectId
 # HELPER — make ObjectId work with Pydantic v2
 # ─────────────────────────────────────────────
 
-class PyObjectId(ObjectId):
-    @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
+def _validate_object_id(v: Any) -> ObjectId:
+    if isinstance(v, ObjectId):
+        return v
+    if not ObjectId.is_valid(str(v)):
+        raise ValueError(f"Invalid ObjectId: {v}")
+    return ObjectId(str(v))
 
-    @classmethod
-    def validate(cls, v):
-        if not ObjectId.is_valid(v):
-            raise ValueError(f"Invalid ObjectId: {v}")
-        return ObjectId(v)
 
-    @classmethod
-    def __get_pydantic_json_schema__(cls, schema):
-        schema.update(type="string")
-        return schema
+PyObjectId = Annotated[
+    ObjectId,
+    BeforeValidator(_validate_object_id),
+    PlainSerializer(str),
+    WithJsonSchema({"type": "string"}),
+]
 
 
 # ─────────────────────────────────────────────

@@ -7,26 +7,19 @@ This is the only file that combines:
   - the Ollama call from ollama_client.py
 """
 
+import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from shared.schemas import ChunkInput, ChunkDocument
 from shared.config import get_settings
 from embedding.ollama_client import get_embedding
 
+_print_lock = threading.Lock()
+
 
 def embed_chunk(chunk: ChunkInput) -> ChunkDocument:
-    """
-    Embed a single chunk.
-
-    Args:
-        chunk: a ChunkInput produced by the ingestion pipeline (Dev A's output)
-
-    Returns:
-        ChunkDocument with embedding, embedding_model, and embedded_at filled in
-    """
     settings = get_settings()
-
     vector = get_embedding(chunk.text)
-
     return ChunkDocument(
         source_file=chunk.source_file,
         chunk_index=chunk.chunk_index,
@@ -40,23 +33,27 @@ def embed_chunk(chunk: ChunkInput) -> ChunkDocument:
 
 
 def embed_chunks(chunks: list[ChunkInput]) -> list[ChunkDocument]:
-    """
-    Embed a list of chunks one by one, with progress logging.
-
-    Args:
-        chunks: list of ChunkInput objects
-
-    Returns:
-        list of ChunkDocument objects ready to be saved to MongoDB
-    """
-    results = []
+    settings = get_settings()
     total = len(chunks)
+    results: list[ChunkDocument | None] = [None] * total
+    completed_count = 0
+    max_workers = min(settings.EMBEDDING_BATCH_SIZE, total, 8)
 
-    for i, chunk in enumerate(chunks, start=1):
-        print(f"   Embedding chunk {i}/{total} "
-              f"(chars: {len(chunk.text)}) ...", end="\r")
-        doc = embed_chunk(chunk)
-        results.append(doc)
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = {
+            executor.submit(embed_chunk, chunk): i
+            for i, chunk in enumerate(chunks)
+        }
+        for future in as_completed(futures):
+            i = futures[future]
+            results[i] = future.result()
+            completed_count += 1
+            with _print_lock:
+                print(
+                    f"   Embedding chunk {completed_count}/{total} "
+                    f"(chars: {len(chunks[i].text)}) ...",
+                    end="\r",
+                )
 
-    print(f"\n    Embedded {total} chunks successfully.")
-    return results
+    print(f"\n   Embedded {total} chunks successfully.")
+    return [r for r in results if r is not None]

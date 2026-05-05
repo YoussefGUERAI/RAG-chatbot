@@ -1,61 +1,101 @@
 """
-test_ingestion.py
-=================
-Run this to verify loader.py and chunker.py work on your PDF.
+tests/test_ingestion.py
+=======================
+Pytest suite for the ingestion pipeline (loader + chunker).
 
-Usage (from the rag_contract/ root):
-    python test_ingestion.py
+Run with:
+    pytest tests/test_ingestion.py -v
+
+For manual inspection:
+    python tests/test_ingestion.py
 """
 
+import os
+import sys
+import pytest
 from ingestion.loader import load_pdf
 from ingestion.chunker import chunk_pages
 from shared.config import get_settings
 
 PDF_PATH = "DocCerts - Documentation.pdf"
 
-settings = get_settings()
+
+@pytest.fixture(scope="module")
+def loaded_pages():
+    if not os.path.exists(PDF_PATH):
+        pytest.skip(f"Test PDF not found: {PDF_PATH}")
+    return load_pdf(PDF_PATH)
 
 
-def test_loader():
-    print("1. Testing PDF loader...")
-    pages = load_pdf(PDF_PATH)
-    print(f"   → Total pages extracted : {len(pages)}")
-    print(f"   → First page preview    : {pages[0][1][:200]!r}")
-    return pages
+def test_loader_returns_pages(loaded_pages):
+    assert len(loaded_pages) > 0, "PDF should have at least one extractable page"
 
 
-def test_chunker(pages):
-    print("\n2. Testing chunker...")
-    chunks = chunk_pages(pages, source_file=PDF_PATH)
+def test_loader_page_format(loaded_pages):
+    for page in loaded_pages:
+        assert isinstance(page, tuple) and len(page) == 2, "Each page must be a (int, str) tuple"
+        page_num, text = page
+        assert isinstance(page_num, int) and page_num >= 1, "Page number must be a positive int"
+        assert isinstance(text, str) and len(text) > 0, "Page text must be a non-empty string"
 
-    print(f"   → Total chunks created  : {len(chunks)}")
-    print(f"   → Chunk size setting    : {settings.CHUNK_SIZE} chars")
-    print(f"   → Overlap setting       : {settings.CHUNK_OVERLAP} chars")
 
-    print("\n   First 3 chunks:")
-    for i, chunk in enumerate(chunks[:3]):
-        print(f"\n   ── Chunk {i} (page {chunk.metadata.page_number}) ──")
-        print(f"   chars       : {len(chunk.text)}")
-        print(f"   section     : {chunk.metadata.section_title}")
-        print(f"   preview     : {chunk.text[:150]!r}")
+def test_loader_raises_on_missing_file():
+    with pytest.raises(FileNotFoundError):
+        load_pdf("nonexistent_file_xyz.pdf")
 
-    char_counts = [len(c.text) for c in chunks]
-    print(f"\n   Chunk size stats:")
-    print(f"   → min  : {min(char_counts)} chars")
-    print(f"   → max  : {max(char_counts)} chars")
-    print(f"   → avg  : {sum(char_counts) // len(char_counts)} chars")
 
-    return chunks
+def test_chunker_produces_chunks(loaded_pages):
+    chunks = chunk_pages(loaded_pages, source_file=PDF_PATH)
+    assert len(chunks) > 0, "Chunker should produce at least one chunk"
+
+
+def test_chunker_chunk_content(loaded_pages):
+    chunks = chunk_pages(loaded_pages, source_file=PDF_PATH)
+    settings = get_settings()
+    for chunk in chunks:
+        assert len(chunk.text) > 0, "Chunk text must not be empty"
+        assert len(chunk.text) <= settings.CHUNK_SIZE * 2, (
+            f"Chunk too large: {len(chunk.text)} chars (CHUNK_SIZE={settings.CHUNK_SIZE})"
+        )
+
+
+def test_chunker_metadata(loaded_pages):
+    chunks = chunk_pages(loaded_pages, source_file=PDF_PATH)
+    for chunk in chunks:
+        assert chunk.source_file == PDF_PATH
+        assert chunk.chunk_index >= 0
+        assert chunk.metadata.doc_type == "pdf"
+        assert chunk.metadata.page_number is not None
+        assert chunk.metadata.page_number >= 1
+
+
+def test_chunker_indices_sequential(loaded_pages):
+    chunks = chunk_pages(loaded_pages, source_file=PDF_PATH)
+    indices = [c.chunk_index for c in chunks]
+    assert indices == list(range(len(chunks))), "Chunk indices must be sequential starting at 0"
 
 
 if __name__ == "__main__":
+    if not os.path.exists(PDF_PATH):
+        print(f"❌ PDF not found: {PDF_PATH}")
+        sys.exit(1)
+
+    settings = get_settings()
     print("=" * 50)
-    print("  Ingestion pipeline — test suite")
+    print("  Ingestion pipeline — manual test")
     print("=" * 50)
 
-    pages = test_loader()
-    chunks = test_chunker(pages)
+    pages = load_pdf(PDF_PATH)
+    print(f"   → Pages : {len(pages)}")
+    print(f"   → Preview: {pages[0][1][:200]!r}")
+
+    chunks = chunk_pages(pages, source_file=PDF_PATH)
+    char_counts = [len(c.text) for c in chunks]
+    print(f"\n   → Chunks : {len(chunks)}")
+    print(f"   → Size settings : {settings.CHUNK_SIZE} chars / {settings.CHUNK_OVERLAP} overlap")
+    if char_counts:
+        print(f"   → min/max/avg : {min(char_counts)}/{max(char_counts)}/{sum(char_counts)//len(char_counts)}")
 
     print("\n" + "=" * 50)
-    print(f"  ✅ Pipeline ready — {len(chunks)} chunks to embed")
+    print(f"  ✅ Done — {len(chunks)} chunks ready to embed")
     print("=" * 50)

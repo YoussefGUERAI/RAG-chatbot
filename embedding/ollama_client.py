@@ -44,8 +44,13 @@ def get_embedding(text: str) -> list[float]:
             f"Cannot reach Ollama at {settings.OLLAMA_BASE_URL}. "
             "Make sure `ollama serve` is running."
         )
+    except httpx.TimeoutException:
+        raise RuntimeError(
+            f"Ollama embedding request timed out at {settings.OLLAMA_BASE_URL}. "
+            "The model may still be loading."
+        )
     except httpx.HTTPStatusError as e:
-        raise RuntimeError(f"Ollama returned an error: {e.response.text}")
+        raise RuntimeError(f"Ollama returned an error: {e.response.text[:500]}")
 
     data = response.json()
 

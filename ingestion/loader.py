@@ -28,6 +28,12 @@ def load_pdf(file_path: str) -> list[tuple[int, str]]:
         pdf = pdfplumber.open(file_path)
     except FileNotFoundError:
         raise FileNotFoundError(f"PDF not found: {file_path}")
+    except PermissionError:
+        raise RuntimeError(f"Permission denied reading {file_path}")
+    except MemoryError:
+        raise RuntimeError(f"PDF file too large to load into memory: {file_path}")
+    except Exception as e:
+        raise RuntimeError(f"Failed to open PDF '{file_path}': {e}")
 
     pages = []
     with pdf:

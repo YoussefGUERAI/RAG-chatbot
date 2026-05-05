@@ -7,6 +7,7 @@ Indexes are created automatically on first call to `init_db()`.
 
 from pymongo import MongoClient, ASCENDING
 from pymongo.collection import Collection
+from pymongo.errors import ServerSelectionTimeoutError
 from shared.config import get_settings
 
 _client: MongoClient | None = None
@@ -16,7 +17,15 @@ def get_client() -> MongoClient:
     global _client
     if _client is None:
         settings = get_settings()
-        _client = MongoClient(settings.MONGO_URI)
+        client = MongoClient(settings.MONGO_URI, serverSelectionTimeoutMS=5000)
+        try:
+            client.admin.command("ping")
+        except ServerSelectionTimeoutError:
+            raise RuntimeError(
+                f"Cannot connect to MongoDB at {settings.MONGO_URI}. "
+                "Make sure MongoDB is running."
+            )
+        _client = client
     return _client
 
 

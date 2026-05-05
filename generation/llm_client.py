@@ -45,8 +45,13 @@ def generate(prompt: str) -> str:
             f"Cannot reach Ollama at {settings.OLLAMA_BASE_URL}. "
             "Make sure `ollama serve` is running."
         )
+    except httpx.TimeoutException:
+        raise RuntimeError(
+            f"Ollama LLM request timed out at {settings.OLLAMA_BASE_URL}. "
+            "Try increasing LLM_MAX_TOKENS or check model availability."
+        )
     except httpx.HTTPStatusError as e:
-        raise RuntimeError(f"Ollama returned an error: {e.response.text}")
+        raise RuntimeError(f"Ollama returned an error: {e.response.text[:500]}")
 
     data = response.json()
 
@@ -55,4 +60,7 @@ def generate(prompt: str) -> str:
             f"Unexpected Ollama response — 'response' key missing: {data}"
         )
 
-    return data["response"].strip()
+    answer = data["response"].strip()
+    if not answer:
+        raise RuntimeError("LLM returned an empty response.")
+    return answer
