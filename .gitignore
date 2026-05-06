@@ -1,4 +1,39 @@
+# Environment
 .env
+.env.*
+!.env.example
+
+# Python
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
 .venv/
+venv/
+*.egg-info/
+dist/
+build/
+
+# Claude Code
+.claude/
+
+# Test & coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Uploaded / processed files
+*.pdf
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+
+# Logs & temp
+*.log
+*.tmp
