@@ -7,6 +7,7 @@ Run with:  python -m uvicorn api.main:app --reload
 
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from shared.database import init_db, close_db
 from api.routes.query import router as query_router
 from api.routes.ingest import router as ingest_router
@@ -28,6 +29,13 @@ app = FastAPI(
     description="Ask questions about your documents using retrieval-augmented generation.",
     version="0.1.0",
     lifespan=lifespan,
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(query_router)

@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>IR4LAB Knowledge Assistant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --grad-start: #1e4eb0;
+    --grad-end: #1aab8a;
+    --teal: #1aab8a;
+    --teal-dark: #149277;
+    --navy: #1e2d40;
+    --bg: #ffffff;
+    --bg-alt: #f5f7fa;
+    --text: #1e2d40;
+    --muted: #6b7280;
+    --border: #e0e0e0;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', system-ui, sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+  }
+  body { min-height: 100vh; display: flex; flex-direction: column; }
+  main { flex: 1; }
+
+  /* Navbar */
+  .navbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: linear-gradient(135deg, var(--grad-start), var(--grad-end));
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .nav-inner {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 10px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+  }
+  .logo-shield {
+    position: relative;
+    background: #fff;
+    padding: 12px 26px 14px;
+    border-radius: 0 0 60px 60px / 0 0 40px 40px;
+    margin-top: -10px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    color: #fff;
+  }
+  .brand-mark {
+    height: 44px;
+    width: auto;
+    display: block;
+  }
+  .brand-text { display: flex; flex-direction: column; line-height: 1.1; }
+  .brand-name { font-weight: 700; font-size: 15px; letter-spacing: 0.5px; }
+  .brand-tag { font-weight: 400; font-size: 12px; color: rgba(255,255,255,0.65); margin-top: 2px; }
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+  }
+  .nav-link {
+    color: rgba(255,255,255,0.78);
+    text-decoration: none;
+    font-size: 13.5px;
+    font-weight: 500;
+    transition: color 0.2s ease;
+  }
+  .nav-link:hover { color: #fff; }
+  .pill-btn {
+    border-radius: 50px;
+    padding: 10px 22px;
+    font-family: inherit;
+    font-weight: 500;
+    font-size: 13.5px;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .pill-outline {
+    background: transparent;
+    border: 1.5px solid rgba(255,255,255,0.7);
+    color: #fff;
+  }
+  .pill-outline:hover {
+    background: rgba(255,255,255,0.12);
+    transform: translateY(-2px);
+  }
+  .pill-teal {
+    background: var(--teal);
+    color: #fff;
+  }
+  .pill-teal:hover {
+    background: var(--teal-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(26,171,138,0.3);
+  }
+  .pill-teal:disabled {
+    background: #b5d8cf;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* Hero */
+  .hero {
+    position: relative;
+    background: linear-gradient(135deg, var(--grad-start) 0%, var(--grad-end) 100%);
+    color: #fff;
+    padding: 72px 32px 110px;
+    text-align: center;
+    overflow: hidden;
+    opacity: 0;
+    animation: heroFade 600ms ease forwards;
+  }
+  @keyframes heroFade { to { opacity: 1; } }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle, rgba(255,255,255,0.18) 1px, transparent 1.5px);
+    background-size: 22px 22px;
+    opacity: 0.6;
+    pointer-events: none;
+  }
+  .hero-inner {
+    position: relative;
+    max-width: 880px;
+    margin: 0 auto;
+    z-index: 1;
+  }
+  .hero-eyebrow {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 50px;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.25);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    margin-bottom: 22px;
+  }
+  .hero h1 {
+    font-size: 52px;
+    font-weight: 700;
+    margin: 0 0 16px;
+    line-height: 1.1;
+    letter-spacing: -0.5px;
+  }
+  .hero p {
+    font-size: 18px;
+    font-weight: 400;
+    margin: 0;
+    color: rgba(255,255,255,0.88);
+    line-height: 1.5;
+  }
+  .wave-divider {
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    line-height: 0;
+  }
+  .wave-divider svg { display: block; width: 100%; height: 80px; }
+
+  /* Main */
+  .main-wrap {
+    max-width: 1240px;
+    margin: -40px auto 0;
+    padding: 0 32px 80px;
+    position: relative;
+    z-index: 2;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 40fr 60fr;
+    gap: 28px;
+  }
+  @media (max-width: 920px) {
+    .grid { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 36px; }
+    .nav-links { gap: 10px; }
+    .nav-link { font-size: 12px; }
+    .pill-btn { padding: 8px 14px; font-size: 12px; }
+  }
+
+  .card {
+    background: #fff;
+    border-radius: 10px;
+    border: 0.5px solid var(--border);
+    padding: 32px;
+    position: relative;
+  }
+  .card.accent::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--teal);
+    border-radius: 10px 10px 0 0;
+  }
+  .section-label {
+    color: var(--teal);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, rgba(26,171,138,0.3), transparent);
+  }
+
+  /* Query panel */
+  textarea.query {
+    width: 100%;
+    min-height: 140px;
+    padding: 16px 18px;
+    border-radius: 12px;
+    border: 1.5px solid var(--border);
+    font-family: inherit;
+    font-size: 14.5px;
+    line-height: 1.55;
+    color: var(--text);
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    background: #fafbfc;
+  }
+  textarea.query:focus {
+    border-color: var(--teal);
+    box-shadow: 0 0 0 4px rgba(26,171,138,0.12);
+    background: #fff;
+  }
+  textarea.query::placeholder { color: #9ca3af; }
+
+  .submit-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 16px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .char-count { font-size: 12px; color: var(--muted); }
+
+  .advanced-toggle {
+    margin-top: 22px;
+    padding-top: 20px;
+    border-top: 1px dashed var(--border);
+  }
+  .advanced-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    user-select: none;
+    color: var(--text);
+    font-weight: 500;
+    font-size: 14px;
+  }
+  .advanced-head .chev {
+    transition: transform 0.25s ease;
+    color: var(--teal);
+  }
+  .advanced-head.open .chev { transform: rotate(180deg); }
+  .advanced-body {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.35s ease, margin 0.25s ease;
+  }
+  .advanced-body.open {
+    max-height: 400px;
+    margin-top: 16px;
+  }
+  .field { margin-bottom: 18px; }
+  .field-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .field-label .val { color: var(--teal); font-weight: 600; }
+  input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 4px;
+    border-radius: 4px;
+    background: #e5e7eb;
+    outline: none;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--teal);
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(26,171,138,0.4);
+    border: 2px solid #fff;
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--teal);
+    cursor: pointer;
+    border: 2px solid #fff;
+  }
+
+  /* Loading dots */
+  .loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 60px 0;
+  }
+  .loading .dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--teal);
+    animation: bounce 1.2s infinite ease-in-out;
+  }
+  .loading .dot:nth-child(2) { animation-delay: 0.15s; }
+  .loading .dot:nth-child(3) { animation-delay: 0.3s; }
+  @keyframes bounce {
+    0%, 80%, 100% { transform: translateY(0); opacity: 0.5; }
+    40% { transform: translateY(-10px); opacity: 1; }
+  }
+  .loading-text {
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: -8px;
+    margin-bottom: 30px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+  }
+
+  /* Response panel */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+  }
+  .empty-illustration {
+    width: 96px;
+    height: 96px;
+    margin: 0 auto 18px;
+    border-radius: 50%;
+    background: rgba(26,171,138,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--teal);
+  }
+  .empty-state p { margin: 0; font-size: 14.5px; }
+
+  .error-box {
+    background: #fff5f5;
+    border: 1px solid #fecaca;
+    border-radius: 10px;
+    padding: 18px 20px;
+    color: #b91c1c;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .error-box strong { display: block; margin-bottom: 4px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .answer-meta {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .meta-badge {
+    font-size: 11.5px;
+    color: var(--muted);
+    background: var(--bg-alt);
+    padding: 4px 10px;
+    border-radius: 50px;
+    font-weight: 500;
+  }
+  .meta-badge span { color: var(--teal); font-weight: 600; }
+
+  .answer-body p {
+    line-height: 1.7;
+    font-size: 15px;
+    margin: 0 0 14px;
+    color: var(--text);
+  }
+  .answer-body strong { color: var(--navy); font-weight: 600; }
+
+  .sources-section { margin-top: 28px; }
+  .sources-section hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 0 0 18px;
+  }
+
+  .source-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    border: 0.5px solid var(--border);
+    background: #fff;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+    text-align: left;
+    width: 100%;
+    font-family: inherit;
+    margin-bottom: 10px;
+  }
+  .source-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(30,45,64,0.08);
+    border-color: rgba(26,171,138,0.4);
+  }
+  .icon-circle {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: var(--teal);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .source-meta { flex: 1; min-width: 0; }
+  .source-name {
+    font-weight: 500;
+    font-size: 14px;
+    color: var(--text);
+    margin-bottom: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .source-sub {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .page-badge {
+    background: rgba(30,45,64,0.06);
+    color: var(--navy);
+    padding: 2px 8px;
+    border-radius: 50px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .relevance {
+    flex: 1;
+    min-width: 60px;
+    max-width: 120px;
+    height: 4px;
+    background: #eef0f3;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .relevance-fill {
+    height: 100%;
+    background: linear-gradient(to right, var(--teal), #2bc6a3);
+    border-radius: 4px;
+  }
+  .relevance-val {
+    font-size: 11px;
+    color: var(--teal);
+    font-weight: 600;
+    margin-left: 4px;
+    flex-shrink: 0;
+  }
+
+  /* Modal */
+  .backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+    padding: 24px;
+  }
+  .backdrop.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+  .modal {
+    background: #fff;
+    border-radius: 14px;
+    max-width: 640px;
+    width: 100%;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transform: scale(0.95);
+    transition: transform 0.25s ease;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.3);
+  }
+  .backdrop.open .modal { transform: scale(1); }
+  .modal-head {
+    padding: 22px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .modal-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--navy);
+    margin: 0 0 4px;
+  }
+  .modal-sub {
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .close-btn {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--bg-alt);
+    border: none;
+    cursor: pointer;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s ease;
+    flex-shrink: 0;
+  }
+  .close-btn:hover { background: #e6e9ef; }
+  .modal-body {
+    padding: 24px;
+    overflow-y: auto;
+    flex: 1;
+  }
+  .chunk-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .chunk-text {
+    background: var(--bg-alt);
+    border-left: 3px solid var(--teal);
+    padding: 16px 18px;
+    border-radius: 0 8px 8px 0;
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text);
+  }
+  .chunk-text mark {
+    background: rgba(26,171,138,0.22);
+    color: var(--navy);
+    padding: 0 3px;
+    border-radius: 3px;
+    font-weight: 500;
+  }
+  .modal-foot {
+    padding: 18px 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  /* Footer */
+  footer {
+    background: var(--navy);
+    color: rgba(255,255,255,0.7);
+    padding: 28px 32px;
+  }
+  .foot-inner {
+    max-width: 1240px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .foot-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #fff;
+  }
+  .foot-left .brand-name { font-size: 14px; }
+  .foot-tag { color: rgba(255,255,255,0.55); font-size: 12.5px; }
+  .foot-right { font-size: 12.5px; color: rgba(255,255,255,0.55); }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .chip {
+    background: rgba(26,171,138,0.08);
+    color: var(--teal-dark);
+    border: 1px solid rgba(26,171,138,0.22);
+    padding: 7px 13px;
+    border-radius: 50px;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .chip:hover {
+    background: var(--teal);
+    color: #fff;
+    transform: translateY(-1px);
+  }
+</style>
+</head>
+<body>
+
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
+
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+const API_URL = "http://localhost:8000";
+
+// Icons
+const SendIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M22 2L11 13" /><path d="M22 2l-7 20-4-9-9-4 20-7z" />
+  </svg>
+);
+const ChevDown = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+);
+const DocIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+  </svg>
+);
+const ArrowRight = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+);
+const CloseIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+);
+const SearchIcon = () => (
+  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/>
+  </svg>
+);
+
+
+const SUGGESTIONS = [
+  "How do I upload a document?",
+  "What can a Super Admin do?",
+  "How does document verification work?"
+];
+
+function basename(path) {
+  return (path || "").replace(/\\/g, "/").split("/").pop() || path;
+}
+
+function App() {
+  const [query, setQuery] = useState("");
+  const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [sources, setSources] = useState(5);
+  const [loading, setLoading] = useState(false);
+  const [answer, setAnswer] = useState(null);
+  const [error, setError] = useState(null);
+  const [activeSource, setActiveSource] = useState(null);
+  const [showDocs, setShowDocs] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [docList, setDocList] = useState(null);
+  const [history, setHistory] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("rag_history") || "[]"); } catch { return []; }
+  });
+
+  const submit = async () => {
+    if (!query.trim() || loading) return;
+    setLoading(true);
+    setAnswer(null);
+    setError(null);
+
+    try {
+      const body = {
+        question: query.trim(),
+        top_k: sources,
+      };
+
+      const res = await fetch(`${API_URL}/query`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.detail || `Server error ${res.status}`);
+      }
+
+      const paragraphs = data.answer
+        .split(/\n\n+/)
+        .map(p => p.trim())
+        .filter(Boolean);
+
+      const mapped = {
+        text: paragraphs.length ? paragraphs : [data.answer],
+        sources: data.retrieved_chunks.map((c, i) => ({
+          id: i + 1,
+          title: basename(c.source_file),
+          page: c.metadata.page_number ?? "—",
+          score: c.score,
+          chunk: c.text,
+        })),
+        model: data.model_used,
+        latency: Math.round(data.latency_ms),
+      };
+      setAnswer(mapped);
+
+      const entry = { question: query.trim(), answer: data.answer, ts: Date.now() };
+      const updated = [entry, ...history].slice(0, 30);
+      setHistory(updated);
+      localStorage.setItem("rag_history", JSON.stringify(updated));
+    } catch (err) {
+      setError(err.message || "Something went wrong. Is the API running?");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === "Escape") {
+        setActiveSource(null);
+        setShowDocs(false);
+        setShowHistory(false);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  useEffect(() => {
+    if (!showDocs || docList !== null) return;
+    fetch(`${API_URL}/documents`)
+      .then(r => r.json())
+      .then(d => setDocList(d.documents))
+      .catch(() => setDocList([]));
+  }, [showDocs]);
+
+  return (
+    <React.Fragment>
+      {/* Navbar */}
+      <nav className="navbar">
+        <div className="nav-inner">
+          <div className="brand">
+            <div className="logo-shield">
+              <img src="assets/ir4lab-logo.png" alt="IR4LAB" className="brand-mark" onError={e => e.target.style.display='none'} />
+            </div>
+            <div className="brand-text" style={{ marginLeft: 18 }}>
+              <span className="brand-name">RAG Assistant</span>
+              <span className="brand-tag">Knowledge retrieval</span>
+            </div>
+          </div>
+          <div className="nav-links">
+            <button className="nav-link" style={{background:"none",border:"none",cursor:"pointer",fontFamily:"inherit"}} onClick={() => setShowDocs(true)}>Documents</button>
+            <button className="nav-link" style={{background:"none",border:"none",cursor:"pointer",fontFamily:"inherit"}} onClick={() => setShowHistory(true)}>History</button>
+            <a href="https://www.ir4lab.com/#frameworks" target="_blank" rel="noopener noreferrer" className="pill-btn pill-outline">
+              Back to IR4LAB <ArrowRight />
+            </a>
+          </div>
+        </div>
+      </nav>
+
+      {/* Hero */}
+      <header className="hero">
+        <div className="hero-inner">
+          <span className="hero-eyebrow">Knowledge Retrieval</span>
+          <h1>IR4LAB Knowledge Assistant</h1>
+          <p>Ask questions. Get answers from your documents.</p>
+        </div>
+        <div className="wave-divider">
+          <svg viewBox="0 0 1440 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0,40 C240,80 480,0 720,40 C960,80 1200,20 1440,50 L1440,80 L0,80 Z" fill="#ffffff"/>
+          </svg>
+        </div>
+      </header>
+
+      <main>
+        <div className="main-wrap">
+          <div className="grid">
+            {/* Query Panel */}
+            <section className="card accent">
+              <div className="section-label">Ask a Question</div>
+              <textarea
+                className="query"
+                placeholder="Type your question here…"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) submit(); }}
+              />
+              <div className="submit-row">
+                <span className="char-count">⌘ + Enter to send · {query.length} chars</span>
+                <button className="pill-btn pill-teal" onClick={submit} disabled={!query.trim() || loading}>
+                  {loading ? "Thinking…" : "Get Answer"} <SendIcon />
+                </button>
+              </div>
+
+              <div className="chips">
+                {SUGGESTIONS.map((s, i) => (
+                  <button key={i} className="chip" onClick={() => setQuery(s)}>{s}</button>
+                ))}
+              </div>
+
+              <div className="advanced-toggle">
+                <div
+                  className={`advanced-head ${advancedOpen ? "open" : ""}`}
+                  onClick={() => setAdvancedOpen(!advancedOpen)}
+                >
+                  <span>Advanced Options</span>
+                  <span className="chev"><ChevDown /></span>
+                </div>
+                <div className={`advanced-body ${advancedOpen ? "open" : ""}`}>
+                  <div className="field">
+                    <div className="field-label">
+                      <span>Number of sources</span>
+                      <span className="val">{sources}</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="1"
+                      max="10"
+                      value={sources}
+                      onChange={(e) => setSources(parseInt(e.target.value))}
+                    />
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Response Panel */}
+            <section className="card accent">
+              <div className="section-label">Answer</div>
+
+              {loading && (
+                <React.Fragment>
+                  <div className="loading">
+                    <div className="dot" />
+                    <div className="dot" />
+                    <div className="dot" />
+                  </div>
+                  <div className="loading-text">Searching sources & composing your answer…</div>
+                </React.Fragment>
+              )}
+
+              {!loading && error && (
+                <div className="error-box">
+                  <strong>Error</strong>
+                  {error}
+                </div>
+              )}
+
+              {!loading && !error && !answer && (
+                <div className="empty-state">
+                  <div className="empty-illustration"><SearchIcon /></div>
+                  <p>Your answer will appear here.</p>
+                </div>
+              )}
+
+              {!loading && !error && answer && (
+                <React.Fragment>
+                  <div className="answer-meta">
+                    <span className="meta-badge">Model: <span>{answer.model}</span></span>
+                    <span className="meta-badge">Time: <span>{answer.latency}ms</span></span>
+                    <span className="meta-badge">Sources: <span>{answer.sources.length}</span></span>
+                  </div>
+                  <div className="answer-body">
+                    {answer.text.map((p, i) => (
+                      <p key={i}>{p}</p>
+                    ))}
+                  </div>
+                  <div className="sources-section">
+                    <div className="section-label">Sources · {answer.sources.length}</div>
+                    <hr />
+                    {answer.sources.map((s) => (
+                      <button
+                        key={s.id}
+                        className="source-card"
+                        onClick={() => setActiveSource(s)}
+                      >
+                        <div className="icon-circle"><DocIcon /></div>
+                        <div className="source-meta">
+                          <div className="source-name">{s.title}</div>
+                          <div className="source-sub">
+                            <span className="page-badge">p. {s.page}</span>
+                            <div className="relevance">
+                              <div className="relevance-fill" style={{ width: `${Math.round(s.score * 100)}%` }} />
+                            </div>
+                            <span className="relevance-val">{Math.round(s.score * 100)}%</span>
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </React.Fragment>
+              )}
+            </section>
+          </div>
+        </div>
+      </main>
+
+      <footer>
+        <div className="foot-inner">
+          <div className="foot-left">
+            <div style={{ background: "#fff", padding: "8px 14px", borderRadius: 8 }}>
+              <img src="assets/ir4lab-logo.png" alt="IR4LAB" style={{ height: 28, display: "block" }} onError={e => e.target.style.display='none'} />
+            </div>
+            <div style={{ borderLeft: "1px solid rgba(255,255,255,0.15)", paddingLeft: 14 }}>
+              <div className="brand-name">Industrial Revolution 4 Lab</div>
+              <div className="foot-tag">Saudi Arabia · est. 2018</div>
+            </div>
+          </div>
+          <div className="foot-right">© 2024 IR4LAB. All Rights Reserved.</div>
+        </div>
+      </footer>
+
+      {/* Documents modal */}
+      <div className={`backdrop ${showDocs ? "open" : ""}`} onClick={() => setShowDocs(false)}>
+        <div className="modal" style={{maxWidth:560}} onClick={e => e.stopPropagation()}>
+          <div className="modal-head">
+            <div>
+              <div className="modal-title">Indexed Documents</div>
+              <div className="modal-sub">{docList ? `${docList.length} document(s) in the knowledge base` : "Loading…"}</div>
+            </div>
+            <button className="close-btn" onClick={() => setShowDocs(false)}><CloseIcon /></button>
+          </div>
+          <div className="modal-body" style={{padding:"16px 24px"}}>
+            {!docList && <div style={{textAlign:"center",padding:"40px 0",color:"var(--muted)"}}>Loading…</div>}
+            {docList && docList.length === 0 && <div style={{textAlign:"center",padding:"40px 0",color:"var(--muted)"}}>No documents found.</div>}
+            {docList && docList.map((d, i) => (
+              <div key={i} style={{display:"flex",alignItems:"center",gap:14,padding:"12px 14px",borderRadius:10,border:"0.5px solid var(--border)",marginBottom:10,background:"#fff"}}>
+                <div className="icon-circle" style={{flexShrink:0}}><DocIcon /></div>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontWeight:500,fontSize:14,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{d.filename}</div>
+                  <div style={{fontSize:12,color:"var(--muted)",marginTop:4}}>{d.chunks} chunks · {d.pages} pages</div>
+                </div>
+                <a
+                  href={`${API_URL}/documents/${encodeURIComponent(d.filename)}/download`}
+                  download={d.filename}
+                  style={{flexShrink:0,background:"var(--teal)",color:"#fff",border:"none",borderRadius:50,padding:"7px 14px",fontSize:12,fontWeight:500,cursor:"pointer",textDecoration:"none",display:"inline-flex",alignItems:"center",gap:6}}
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  Download
+                </a>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* History modal */}
+      <div className={`backdrop ${showHistory ? "open" : ""}`} onClick={() => setShowHistory(false)}>
+        <div className="modal" style={{maxWidth:560}} onClick={e => e.stopPropagation()}>
+          <div className="modal-head">
+            <div>
+              <div className="modal-title">Query History</div>
+              <div className="modal-sub">{history.length} past question(s) — click one to reload it</div>
+            </div>
+            <button className="close-btn" onClick={() => setShowHistory(false)}><CloseIcon /></button>
+          </div>
+          <div className="modal-body" style={{padding:"16px 24px"}}>
+            {history.length === 0 && <div style={{textAlign:"center",padding:"40px 0",color:"var(--muted)"}}>No history yet. Ask your first question!</div>}
+            {history.map((h, i) => (
+              <button key={i} onClick={() => { setQuery(h.question); setShowHistory(false); }}
+                style={{width:"100%",textAlign:"left",background:"#fff",border:"0.5px solid var(--border)",borderRadius:10,padding:"12px 16px",marginBottom:10,cursor:"pointer",fontFamily:"inherit",transition:"all 0.15s ease"}}
+                onMouseEnter={e => e.currentTarget.style.borderColor="rgba(26,171,138,0.4)"}
+                onMouseLeave={e => e.currentTarget.style.borderColor="var(--border)"}
+              >
+                <div style={{fontWeight:500,fontSize:14,color:"var(--text)",marginBottom:4}}>{h.question}</div>
+                <div style={{fontSize:12,color:"var(--muted)"}}>{new Date(h.ts).toLocaleString()}</div>
+              </button>
+            ))}
+          </div>
+          {history.length > 0 && (
+            <div className="modal-foot">
+              <button className="pill-btn" style={{background:"#fff",border:"1px solid var(--border)",color:"var(--muted)",fontSize:13}} onClick={() => { setHistory([]); localStorage.removeItem("rag_history"); }}>
+                Clear history
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Source detail modal */}
+      <div className={`backdrop ${activeSource ? "open" : ""}`} onClick={() => setActiveSource(null)}>
+        {activeSource && (
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-head">
+              <div>
+                <div className="modal-title">{activeSource.title}</div>
+                <div className="modal-sub">Page {activeSource.page} · Relevance {Math.round(activeSource.score * 100)}%</div>
+              </div>
+              <button className="close-btn" onClick={() => setActiveSource(null)}>
+                <CloseIcon />
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="chunk-title">Relevant excerpt</div>
+              <div className="chunk-text">
+                <Highlighted text={activeSource.chunk} query={query} />
+              </div>
+            </div>
+            <div className="modal-foot">
+            </div>
+          </div>
+        )}
+      </div>
+    </React.Fragment>
+  );
+}
+
+function Highlighted({ text, query }) {
+  const terms = (query || "")
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(t => t.length > 4)
+    .slice(0, 4);
+  if (!terms.length) return text;
+  const re = new RegExp(`(${terms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})`, "gi");
+  const parts = text.split(re);
+  return parts.map((p, i) =>
+    re.test(p) ? <mark key={i}>{p}</mark> : <span key={i}>{p}</span>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

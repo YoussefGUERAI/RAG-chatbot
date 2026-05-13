@@ -6,9 +6,12 @@ Takes a question, retrieves relevant chunks, generates an answer.
 """
 
 import time
+from pathlib import Path
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import FileResponse
 from shared.schemas import QueryRequest, QueryResponse
 from shared.config import get_settings
+from shared.database import get_collection
 from retrieval.retriever import retrieve
 from generation.prompt import build_prompt
 from generation.llm_client import generate
@@ -61,4 +64,54 @@ def query(req: QueryRequest):
         retrieved_chunks=chunks,
         model_used=settings.LLM_MODEL_NAME,
         latency_ms=round(elapsed_ms, 1),
+    )
+
+
+@router.get("/documents")
+def list_documents():
+    col = get_collection()
+    pipeline = [
+        {"$group": {
+            "_id": "$source_file",
+            "chunks": {"$sum": 1},
+            "pages": {"$addToSet": "$metadata.page_number"},
+        }},
+        {"$sort": {"_id": 1}},
+    ]
+    results = list(col.aggregate(pipeline))
+
+    # Deduplicate by basename — same file ingested from different paths counts once
+    seen = {}
+    for r in results:
+        name = r["_id"].replace("\\", "/").split("/")[-1]
+        if name not in seen:
+            seen[name] = {"filename": name, "chunks": 0, "pages": set()}
+        seen[name]["chunks"] += r["chunks"]
+        seen[name]["pages"].update(p for p in r["pages"] if p is not None)
+
+    docs = [
+        {"filename": v["filename"], "chunks": v["chunks"], "pages": len(v["pages"])}
+        for v in seen.values()
+    ]
+    return {"documents": docs, "total": len(docs)}
+
+
+@router.get("/documents/{filename}/download")
+def download_document(filename: str):
+    col = get_collection()
+    doc = col.find_one(
+        {"source_file": {"$regex": filename.replace(".", r"\.")}},
+        {"source_file": 1}
+    )
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found.")
+
+    path = Path(doc["source_file"])
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="File not found on disk.")
+
+    return FileResponse(
+        path=str(path),
+        media_type="application/pdf",
+        filename=path.name,
     )
