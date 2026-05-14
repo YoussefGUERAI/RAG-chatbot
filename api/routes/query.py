@@ -15,6 +15,7 @@ from shared.database import get_collection
 from retrieval.retriever import retrieve
 from generation.prompt import build_prompt
 from generation.llm_client import generate
+from generation.rewriter import rewrite_query, looks_like_followup
 
 router = APIRouter()
 
@@ -31,10 +32,18 @@ def query(req: QueryRequest):
     start = time.perf_counter()
     settings = get_settings()
 
+    # 0. Rewrite the search query for follow-ups (history only)
+    search_query = req.question
+    rewritten_query = None
+    if req.history and looks_like_followup(req.question):
+        rewritten_query = rewrite_query(req.question, req.history)
+        if rewritten_query and rewritten_query != req.question:
+            search_query = rewritten_query
+
     # 1. Retrieve
     try:
         chunks = retrieve(
-            question=req.question,
+            question=search_query,
             top_k=req.top_k,
             doc_type_filter=req.doc_type_filter,
         )
@@ -47,8 +56,8 @@ def query(req: QueryRequest):
             detail="No relevant chunks found. Is the database populated?",
         )
 
-    # 2. Build prompt
-    prompt = build_prompt(req.question, chunks)
+    # 2. Build prompt (with optional conversation history)
+    prompt = build_prompt(req.question, chunks, history=req.history)
 
     # 3. Generate
     try:
@@ -64,6 +73,7 @@ def query(req: QueryRequest):
         retrieved_chunks=chunks,
         model_used=settings.LLM_MODEL_NAME,
         latency_ms=round(elapsed_ms, 1),
+        rewritten_query=rewritten_query if rewritten_query and rewritten_query != req.question else None,
     )
 
 

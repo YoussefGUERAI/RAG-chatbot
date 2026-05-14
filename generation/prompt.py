@@ -5,10 +5,14 @@ Builds the final prompt string from retrieved chunks + user question.
 Keeps prompt engineering in one place — easy to iterate on.
 """
 
-from shared.schemas import RetrievedChunk
+from shared.schemas import RetrievedChunk, ConversationTurn
 
 
-def build_prompt(question: str, chunks: list[RetrievedChunk]) -> str:
+def build_prompt(
+    question: str,
+    chunks: list[RetrievedChunk],
+    history: list[ConversationTurn] | None = None,
+) -> str:
     """
     Assemble the prompt sent to the LLM.
 
@@ -33,11 +37,28 @@ def build_prompt(question: str, chunks: list[RetrievedChunk]) -> str:
 
     context = "\n\n".join(context_blocks)
 
+    history_block = ""
+    if history:
+        turns = []
+        for turn in history:
+            turns.append(f"User: {turn.question}\nAssistant: {turn.answer}")
+        history_block = (
+            "--- CONVERSATION SO FAR ---\n"
+            + "\n\n".join(turns)
+            + "\n--- END CONVERSATION ---\n\n"
+        )
+
     prompt = (
         "You are a helpful assistant that answers questions based on the provided documentation.\n"
         "Use ONLY the context below to answer. If the context does not contain the answer, say "
         "\"I don't have enough information to answer that.\"\n"
-        "Be concise and accurate.\n\n"
+        "Provide a thorough, detailed answer that draws on all relevant context. "
+        "When the context describes steps, list them. When it mentions specific buttons, fields, "
+        "roles, or screens, name them. Paraphrase or quote specific details rather than summarizing vaguely. "
+        "Stay accurate to the source — do not invent information beyond the context.\n"
+        "Use the conversation so far only to resolve pronouns and follow-up references — "
+        "do not treat it as a source of factual content.\n\n"
+        f"{history_block}"
         "--- CONTEXT ---\n"
         f"{context}\n"
         "--- END CONTEXT ---\n\n"

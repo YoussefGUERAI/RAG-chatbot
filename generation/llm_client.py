@@ -36,7 +36,7 @@ def generate(prompt: str) -> str:
                     "temperature": settings.LLM_TEMPERATURE,
                 },
             },
-            timeout=300.0,  # LLM generation can be slow on CPU
+            timeout=600.0,  # LLM generation can be slow on CPU
         )
         response.raise_for_status()
 

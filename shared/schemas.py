@@ -82,13 +82,20 @@ class ChunkMetadata(BaseModel):
 # (used by Dev A in FastAPI routes)
 # ─────────────────────────────────────────────
 
+class ConversationTurn(BaseModel):
+    """One prior Q&A turn for multi-turn context."""
+    question: str = Field(..., min_length=1, max_length=1000)
+    answer: str = Field(..., min_length=1, max_length=8000)
+
+
 class QueryRequest(BaseModel):
     """
     Body of POST /query
     """
     question: str = Field(..., min_length=1, max_length=1000)
-    top_k: int = Field(default=5, ge=1, le=20)
+    top_k: int = Field(default=7, ge=1, le=20)
     doc_type_filter: Optional[str] = None   # e.g. "pdf" to limit search scope
+    history: list[ConversationTurn] = Field(default_factory=list, max_length=5)
 
 
 class RetrievedChunk(BaseModel):
@@ -111,6 +118,7 @@ class QueryResponse(BaseModel):
     retrieved_chunks: list[RetrievedChunk]
     model_used: str                     # e.g. "mistral:7b"
     latency_ms: float
+    rewritten_query: Optional[str] = None  # set when retrieval used a rewritten query
 
 
 # ─────────────────────────────────────────────

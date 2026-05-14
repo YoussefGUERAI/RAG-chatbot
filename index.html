@@ -208,6 +208,163 @@
     .pill-btn { padding: 8px 14px; font-size: 12px; }
   }
 
+  /* Chat layout */
+  .chat-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    background: #fff;
+    border-radius: 10px;
+    border: 0.5px solid var(--border);
+    min-height: 60vh;
+    overflow: hidden;
+    position: relative;
+  }
+  .chat-wrap::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--teal);
+    border-radius: 10px 10px 0 0;
+  }
+  .chat-feed {
+    flex: 1;
+    padding: 32px 32px 16px;
+    overflow-y: auto;
+    max-height: 65vh;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+  .chat-empty {
+    text-align: center;
+    color: var(--muted);
+    padding: 60px 20px;
+  }
+  .msg { display: flex; gap: 14px; align-items: flex-start; }
+  .msg.user { flex-direction: row-reverse; }
+  .avatar {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    font-size: 13px; font-weight: 600;
+    color: #fff;
+  }
+  .avatar.user { background: var(--navy); }
+  .avatar.assistant { background: var(--teal); }
+  .bubble {
+    background: var(--bg-alt);
+    border-radius: 12px;
+    padding: 14px 18px;
+    max-width: 80%;
+    line-height: 1.6;
+    font-size: 14.5px;
+  }
+  .msg.user .bubble {
+    background: linear-gradient(135deg, var(--grad-start), var(--grad-end));
+    color: #fff;
+  }
+  .msg.assistant .bubble { background: var(--bg-alt); color: var(--text); }
+  .bubble p { margin: 0 0 8px; }
+  .bubble p:last-child { margin-bottom: 0; }
+  .bubble-meta {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .bubble-meta .badge {
+    background: #fff;
+    padding: 3px 8px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+  .bubble-sources {
+    margin-top: 10px;
+    border-top: 1px dashed var(--border);
+    padding-top: 10px;
+  }
+  .bubble-sources summary {
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--teal-dark);
+    font-weight: 600;
+  }
+  .bubble-sources .src-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 0;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .bubble-sources .src-row b { color: var(--text); font-weight: 500; }
+  .rewrite-note {
+    font-size: 11px;
+    color: var(--muted);
+    font-style: italic;
+    margin-top: 6px;
+  }
+
+  .chat-input-bar {
+    border-top: 1px solid var(--border);
+    background: #fff;
+    padding: 16px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .chat-input-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+  }
+  .chat-input-row textarea {
+    flex: 1;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-family: inherit;
+    font-size: 14px;
+    resize: none;
+    min-height: 44px;
+    max-height: 140px;
+    outline: none;
+  }
+  .chat-input-row textarea:focus { border-color: var(--teal); }
+  .chat-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11.5px;
+    color: var(--muted);
+  }
+  .chat-toolbar .left, .chat-toolbar .right { display: flex; gap: 10px; align-items: center; }
+  .ghost-btn {
+    background: none; border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 5px 12px; border-radius: 14px;
+    font-family: inherit; font-size: 11.5px;
+    cursor: pointer;
+  }
+  .ghost-btn:hover { color: var(--text); border-color: var(--text); }
+  .typing {
+    display: inline-flex; gap: 4px; padding: 14px 18px;
+    background: var(--bg-alt); border-radius: 12px;
+  }
+  .typing span {
+    width: 6px; height: 6px; border-radius: 50%; background: var(--muted);
+    animation: typing 1.2s infinite ease-in-out;
+  }
+  .typing span:nth-child(2) { animation-delay: 0.15s; }
+  .typing span:nth-child(3) { animation-delay: 0.3s; }
+  @keyframes typing {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.3; }
+    30% { transform: translateY(-4px); opacity: 1; }
+  }
+
   .card {
     background: #fff;
     border-radius: 10px;
@@ -712,9 +869,8 @@ function basename(path) {
 function App() {
   const [query, setQuery] = useState("");
   const [advancedOpen, setAdvancedOpen] = useState(false);
-  const [sources, setSources] = useState(5);
+  const [sources, setSources] = useState(7);
   const [loading, setLoading] = useState(false);
-  const [answer, setAnswer] = useState(null);
   const [error, setError] = useState(null);
   const [activeSource, setActiveSource] = useState(null);
   const [showDocs, setShowDocs] = useState(false);
@@ -723,17 +879,41 @@ function App() {
   const [history, setHistory] = useState(() => {
     try { return JSON.parse(localStorage.getItem("rag_history") || "[]"); } catch { return []; }
   });
+  const [messages, setMessages] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("rag_messages") || "[]"); } catch { return []; }
+  });
+  const feedRef = useRef(null);
+
+  useEffect(() => {
+    if (feedRef.current) feedRef.current.scrollTop = feedRef.current.scrollHeight;
+  }, [messages, loading]);
 
   const submit = async () => {
     if (!query.trim() || loading) return;
     setLoading(true);
-    setAnswer(null);
     setError(null);
 
+    const userMsg = { role: "user", content: query.trim(), ts: Date.now() };
+    const conversation = [...messages, userMsg];
+    setMessages(conversation);
+    const askedQuery = query.trim();
+    setQuery("");
+
     try {
+      const priorTurns = [];
+      for (let i = 0; i < messages.length - 1; i++) {
+        const m = messages[i];
+        const next = messages[i + 1];
+        if (m.role === "user" && next && next.role === "assistant") {
+          priorTurns.push({ question: m.content, answer: next.content });
+        }
+      }
+      const recentTurns = priorTurns.slice(-3);
+
       const body = {
-        question: query.trim(),
+        question: askedQuery,
         top_k: sources,
+        history: recentTurns,
       };
 
       const res = await fetch(`${API_URL}/query`, {
@@ -753,8 +933,10 @@ function App() {
         .map(p => p.trim())
         .filter(Boolean);
 
-      const mapped = {
-        text: paragraphs.length ? paragraphs : [data.answer],
+      const assistantMsg = {
+        role: "assistant",
+        content: data.answer,
+        paragraphs: paragraphs.length ? paragraphs : [data.answer],
         sources: data.retrieved_chunks.map((c, i) => ({
           id: i + 1,
           title: basename(c.source_file),
@@ -764,10 +946,14 @@ function App() {
         })),
         model: data.model_used,
         latency: Math.round(data.latency_ms),
+        rewrittenQuery: data.rewritten_query || null,
+        ts: Date.now(),
       };
-      setAnswer(mapped);
+      const finalMessages = [...conversation, assistantMsg];
+      setMessages(finalMessages);
+      localStorage.setItem("rag_messages", JSON.stringify(finalMessages));
 
-      const entry = { question: query.trim(), answer: data.answer, ts: Date.now() };
+      const entry = { question: askedQuery, answer: data.answer, ts: Date.now() };
       const updated = [entry, ...history].slice(0, 30);
       setHistory(updated);
       localStorage.setItem("rag_history", JSON.stringify(updated));
@@ -776,6 +962,13 @@ function App() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const newChat = () => {
+    setMessages([]);
+    localStorage.removeItem("rag_messages");
+    setError(null);
+    setQuery("");
   };
 
   useEffect(() => {
@@ -838,124 +1031,116 @@ function App() {
 
       <main>
         <div className="main-wrap">
-          <div className="grid">
-            {/* Query Panel */}
-            <section className="card accent">
-              <div className="section-label">Ask a Question</div>
-              <textarea
-                className="query"
-                placeholder="Type your question here…"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) submit(); }}
-              />
-              <div className="submit-row">
-                <span className="char-count">⌘ + Enter to send · {query.length} chars</span>
-                <button className="pill-btn pill-teal" onClick={submit} disabled={!query.trim() || loading}>
-                  {loading ? "Thinking…" : "Get Answer"} <SendIcon />
-                </button>
-              </div>
-
-              <div className="chips">
-                {SUGGESTIONS.map((s, i) => (
-                  <button key={i} className="chip" onClick={() => setQuery(s)}>{s}</button>
-                ))}
-              </div>
-
-              <div className="advanced-toggle">
-                <div
-                  className={`advanced-head ${advancedOpen ? "open" : ""}`}
-                  onClick={() => setAdvancedOpen(!advancedOpen)}
-                >
-                  <span>Advanced Options</span>
-                  <span className="chev"><ChevDown /></span>
-                </div>
-                <div className={`advanced-body ${advancedOpen ? "open" : ""}`}>
-                  <div className="field">
-                    <div className="field-label">
-                      <span>Number of sources</span>
-                      <span className="val">{sources}</span>
-                    </div>
-                    <input
-                      type="range"
-                      min="1"
-                      max="10"
-                      value={sources}
-                      onChange={(e) => setSources(parseInt(e.target.value))}
-                    />
+          <section className="chat-wrap">
+            <div className="chat-feed" ref={feedRef}>
+              {messages.length === 0 && !loading && (
+                <div className="chat-empty">
+                  <div className="empty-illustration" style={{margin:"0 auto 14px",width:80,height:80,borderRadius:"50%",background:"var(--bg-alt)",display:"flex",alignItems:"center",justifyContent:"center",color:"var(--teal)"}}>
+                    <SearchIcon />
+                  </div>
+                  <p style={{marginBottom:14}}>Start a conversation. Ask anything about your documents.</p>
+                  <div className="chips" style={{justifyContent:"center"}}>
+                    {SUGGESTIONS.map((s, i) => (
+                      <button key={i} className="chip" onClick={() => setQuery(s)}>{s}</button>
+                    ))}
                   </div>
                 </div>
-              </div>
-            </section>
-
-            {/* Response Panel */}
-            <section className="card accent">
-              <div className="section-label">Answer</div>
-
-              {loading && (
-                <React.Fragment>
-                  <div className="loading">
-                    <div className="dot" />
-                    <div className="dot" />
-                    <div className="dot" />
-                  </div>
-                  <div className="loading-text">Searching sources & composing your answer…</div>
-                </React.Fragment>
               )}
 
-              {!loading && error && (
-                <div className="error-box">
+              {messages.map((m, idx) => (
+                <div key={idx} className={`msg ${m.role}`}>
+                  <div className={`avatar ${m.role}`}>{m.role === "user" ? "U" : "AI"}</div>
+                  <div className="bubble">
+                    {m.role === "user" ? (
+                      <p>{m.content}</p>
+                    ) : (
+                      <React.Fragment>
+                        {m.paragraphs.map((p, i) => <p key={i}>{p}</p>)}
+                        <div className="bubble-meta">
+                          <span className="badge">{m.model}</span>
+                          <span className="badge">{m.latency} ms</span>
+                          <span className="badge">{m.sources.length} sources</span>
+                        </div>
+                        {m.rewrittenQuery && (
+                          <div className="rewrite-note">
+                            Searched as: "{m.rewrittenQuery}"
+                          </div>
+                        )}
+                        <details className="bubble-sources">
+                          <summary>View sources ({m.sources.length})</summary>
+                          {m.sources.map(s => (
+                            <button
+                              key={s.id}
+                              className="src-row"
+                              style={{background:"none",border:"none",cursor:"pointer",width:"100%",textAlign:"left",fontFamily:"inherit"}}
+                              onClick={() => setActiveSource(s)}
+                            >
+                              <DocIcon />
+                              <b>{s.title}</b>
+                              <span>· p. {s.page}</span>
+                              <span style={{marginLeft:"auto",color:"var(--teal-dark)",fontWeight:600}}>{Math.round(s.score * 100)}%</span>
+                            </button>
+                          ))}
+                        </details>
+                      </React.Fragment>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              {loading && (
+                <div className="msg assistant">
+                  <div className="avatar assistant">AI</div>
+                  <div className="typing">
+                    <span></span><span></span><span></span>
+                  </div>
+                </div>
+              )}
+
+              {error && (
+                <div className="error-box" style={{margin:"12px 0"}}>
                   <strong>Error</strong>
                   {error}
                 </div>
               )}
+            </div>
 
-              {!loading && !error && !answer && (
-                <div className="empty-state">
-                  <div className="empty-illustration"><SearchIcon /></div>
-                  <p>Your answer will appear here.</p>
+            <div className="chat-input-bar">
+              <div className="chat-input-row">
+                <textarea
+                  placeholder={messages.length === 0 ? "Ask your first question…" : "Continue the conversation…"}
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); }
+                  }}
+                  rows={1}
+                />
+                <button className="pill-btn pill-teal" onClick={submit} disabled={!query.trim() || loading}>
+                  {loading ? "…" : <SendIcon />}
+                </button>
+              </div>
+              <div className="chat-toolbar">
+                <div className="left">
+                  <span>Enter to send · Shift+Enter for new line</span>
                 </div>
-              )}
-
-              {!loading && !error && answer && (
-                <React.Fragment>
-                  <div className="answer-meta">
-                    <span className="meta-badge">Model: <span>{answer.model}</span></span>
-                    <span className="meta-badge">Time: <span>{answer.latency}ms</span></span>
-                    <span className="meta-badge">Sources: <span>{answer.sources.length}</span></span>
-                  </div>
-                  <div className="answer-body">
-                    {answer.text.map((p, i) => (
-                      <p key={i}>{p}</p>
-                    ))}
-                  </div>
-                  <div className="sources-section">
-                    <div className="section-label">Sources · {answer.sources.length}</div>
-                    <hr />
-                    {answer.sources.map((s) => (
-                      <button
-                        key={s.id}
-                        className="source-card"
-                        onClick={() => setActiveSource(s)}
-                      >
-                        <div className="icon-circle"><DocIcon /></div>
-                        <div className="source-meta">
-                          <div className="source-name">{s.title}</div>
-                          <div className="source-sub">
-                            <span className="page-badge">p. {s.page}</span>
-                            <div className="relevance">
-                              <div className="relevance-fill" style={{ width: `${Math.round(s.score * 100)}%` }} />
-                            </div>
-                            <span className="relevance-val">{Math.round(s.score * 100)}%</span>
-                          </div>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </React.Fragment>
-              )}
-            </section>
-          </div>
+                <div className="right">
+                  <span>Sources:</span>
+                  <input
+                    type="range"
+                    min="1" max="10"
+                    value={sources}
+                    onChange={(e) => setSources(parseInt(e.target.value))}
+                    style={{width:80}}
+                  />
+                  <span style={{fontWeight:600,color:"var(--text)"}}>{sources}</span>
+                  <button className="ghost-btn" onClick={newChat} disabled={messages.length === 0 && !loading}>
+                    New chat
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
         </div>
       </main>
 
